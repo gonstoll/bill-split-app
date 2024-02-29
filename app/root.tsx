@@ -1,4 +1,3 @@
-import {cssBundleHref} from '@remix-run/css-bundle'
 import type {
   ActionFunctionArgs,
   LoaderFunctionArgs,
@@ -18,7 +17,7 @@ import {
   useLoaderData,
 } from '@remix-run/react'
 import {Button} from './components/ui/button'
-import styles from './globals.css'
+import styles from './globals.css?url'
 import {cn} from './lib/utils'
 import {ThemeSwitch, useTheme} from './routes/action.set-theme'
 import {ClientHintCheck, getHints} from './utils/client-hints'
@@ -32,10 +31,7 @@ import {
 import {getTheme} from './utils/theme.server'
 
 export function links() {
-  return [
-    {rel: 'stylesheet', href: styles},
-    ...(cssBundleHref ? [{rel: 'stylesheet', href: cssBundleHref}] : []),
-  ]
+  return [{rel: 'stylesheet', href: styles}]
 }
 
 export function meta(): Array<MetaDescriptor> {
@@ -83,7 +79,6 @@ export default function App() {
             <Button>Logout</Button>
           </Form>
         ) : null}
-
         <Outlet />
       </main>
       <ScrollRestoration />
