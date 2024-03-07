@@ -8,8 +8,7 @@ First, install your dependencies with:
 npm install
 ```
 
-If you haven't already, copy the `.env.example` file to a new file called `.env` and fill in the necessary environment
-variables. The app won't work without these credentials.
+If you haven't already, copy the `.env.example` file to a new file called `.env` and fill in the necessary environment variables. The app won't work without these credentials.
 
 Then, start the server in development mode:
 
