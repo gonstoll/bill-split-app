@@ -42,6 +42,11 @@ const passwordSchema = z
 const KNWON_REGISTER_ERROR_STATUS = [400, 401, 403, 409]
 const KNWON_PASSWORD_ERROR_STATUS = [400, 401, 403, 404]
 
+export async function loader({request}: LoaderFunctionArgs) {
+  const session = await getSession(request.headers.get('Cookie'))
+  return json({userId: session.get('userId'), email: session.get('email')})
+}
+
 export async function action({request}: ActionFunctionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
   const formData = Object.fromEntries(await request.formData())
@@ -151,11 +156,6 @@ export async function action({request}: ActionFunctionArgs) {
       return json({type: 'responseError' as const, error: {responseError}})
     }
   }
-}
-
-export async function loader({request}: LoaderFunctionArgs) {
-  const session = await getSession(request.headers.get('Cookie'))
-  return json({userId: session.get('userId'), email: session.get('email')})
 }
 
 export default function RegisterPage() {
