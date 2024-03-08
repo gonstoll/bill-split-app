@@ -30,6 +30,11 @@ const PasswordSchema = z
     'Passwords must match',
   )
 
+const LoginResponseSchema = z.object({
+  token: z.string(),
+  expiresOn: z.date(),
+})
+
 export async function loader({request}: LoaderFunctionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
   const userId = session.get('userId')
@@ -98,13 +103,25 @@ export async function action({request}: ActionFunctionArgs) {
         headers: {'content-type': 'application/json'},
       },
     )
-    // TODO: Handle this better
-    const data = (await response.json()) as {token: string; expiresOn: Date}
 
-    session.set('token', data.token)
-    session.set('expiresOn', data.expiresOn)
-    session.unset('userId')
-    session.unset('email')
+    if (!response.ok) {
+      const parsedError = knownErrorSchema.safeParse(await response.json())
+      if (!parsedError.success) {
+        throw new Response('Something went wrong', {status: 500})
+      }
+      const {detail} = parsedError.data
+      return json(
+        {
+          status: 'error',
+          result: result.reply({formErrors: [detail]}),
+        } as const,
+        {status: response.status},
+      )
+    }
+
+    const responseResult = LoginResponseSchema.parse(await response.json())
+    session.set('token', responseResult.token)
+    session.set('expiresOn', responseResult.expiresOn)
 
     return redirect('/', {
       headers: {'set-cookie': await commitSession(session)},

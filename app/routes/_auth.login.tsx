@@ -58,15 +58,13 @@ export async function action({request}: ActionFunctionArgs) {
   if (!response.ok) {
     const parsedError = knownErrorSchema.safeParse(await response.json())
     if (!parsedError.success) {
-      throw new Response('Invalid response from server', {status: 500})
+      throw new Response('Something went wrong', {status: 500})
     }
     const {detail} = parsedError.data
     return json(
       {
         status: 'error',
-        result: result.reply({
-          formErrors: [detail],
-        }),
+        result: result.reply({formErrors: [detail]}),
       } as const,
       {status: response.status},
     )
@@ -75,8 +73,6 @@ export async function action({request}: ActionFunctionArgs) {
   const responseResult = LoginResponseSchema.parse(await response.json())
   session.set('token', responseResult.token)
   session.set('expiresOn', responseResult.expiresOn)
-  session.unset('userId')
-  session.unset('email')
 
   return redirect('/', {
     headers: {'set-cookie': await commitSession(session)},
