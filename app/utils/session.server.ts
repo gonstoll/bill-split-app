@@ -5,7 +5,8 @@ type SessionData = {
   userId: string
   email: string
   token: string
-  expiresOn: Date
+  refreshToken: string
+  expiresOn: string
 }
 
 type SessionFlashData = {

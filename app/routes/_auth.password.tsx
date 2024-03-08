@@ -32,7 +32,8 @@ const PasswordSchema = z
 
 const LoginResponseSchema = z.object({
   token: z.string(),
-  expiresOn: z.date(),
+  refreshToken: z.string(),
+  expiresOn: z.string(),
 })
 
 export async function loader({request}: LoaderFunctionArgs) {
@@ -119,9 +120,13 @@ export async function action({request}: ActionFunctionArgs) {
       )
     }
 
-    const responseResult = LoginResponseSchema.parse(await response.json())
-    session.set('token', responseResult.token)
-    session.set('expiresOn', responseResult.expiresOn)
+    const responseResult = LoginResponseSchema.safeParse(await response.json())
+    if (!responseResult.success) {
+      throw new Response('Invalid response from server', {status: 500})
+    }
+    const {token, expiresOn} = responseResult.data
+    session.set('token', token)
+    session.set('expiresOn', expiresOn)
 
     return redirect('/', {
       headers: {'set-cookie': await commitSession(session)},
