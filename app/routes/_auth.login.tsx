@@ -2,12 +2,16 @@ import {getFormProps, getInputProps, useForm} from '@conform-to/react'
 import {getZodConstraint, parseWithZod} from '@conform-to/zod'
 import type {ActionFunctionArgs} from '@remix-run/node'
 import {Form, Link, json, redirect, useActionData} from '@remix-run/react'
+import {AlertCircle} from 'lucide-react'
 import {z} from 'zod'
+import {GeneralErrorBoundary} from '~/components/error-boundary'
 import {ErrorList} from '~/components/error-list'
+import {Alert, AlertDescription, AlertTitle} from '~/components/ui/alert'
 import {Button} from '~/components/ui/button'
 import {Input} from '~/components/ui/input'
 import {Label} from '~/components/ui/label'
 import {commitSession, getSession} from '~/utils/session.server'
+import {knownErrorSchema} from '~/utils/types'
 
 const LoginSchema = z.object({
   email: z
@@ -32,13 +36,16 @@ export async function action({request}: ActionFunctionArgs) {
   const result = parseWithZod(formData, {schema: LoginSchema})
 
   if (result.status !== 'success') {
-    return json({status: 'error', result: result.reply()} as const, {
-      status: result.status === 'error' ? 400 : 200,
-    })
+    return json(
+      {
+        status: 'error',
+        result: result.reply(),
+      } as const,
+      {status: result.status === 'error' ? 400 : 200},
+    )
   }
 
   const body = result.value
-
   const response = await fetch(
     'http://localhost:5003/api/Authorization/login',
     {
@@ -47,24 +54,31 @@ export async function action({request}: ActionFunctionArgs) {
       headers: {'content-type': 'application/json'},
     },
   )
+
   if (!response.ok) {
+    const parsedError = knownErrorSchema.safeParse(await response.json())
+    if (!parsedError.success) {
+      throw new Response('Invalid response from server', {status: 500})
+    }
+    const {detail} = parsedError.data
     return json(
       {
         status: 'error',
         result: result.reply({
-          formErrors: ['Invalid email or password'],
+          formErrors: [detail],
         }),
       } as const,
       {status: response.status},
     )
   }
+
   const responseResult = LoginResponseSchema.parse(await response.json())
   session.set('token', responseResult.token)
   session.set('expiresOn', responseResult.expiresOn)
   session.unset('userId')
   session.unset('email')
 
-  throw redirect('/', {
+  return redirect('/', {
     headers: {'set-cookie': await commitSession(session)},
   })
 }
@@ -90,22 +104,27 @@ export default function Login() {
       </div>
 
       <Form method="post" {...getFormProps(form)}>
+        {form.errors?.length ? (
+          <div className="mb-4">
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Something went wrong</AlertTitle>
+              <AlertDescription>
+                <ErrorList id={form.errorId} errors={form.errors} />
+              </AlertDescription>
+            </Alert>
+          </div>
+        ) : null}
+
         <div className="mb-4 flex flex-col gap-2">
           <Label htmlFor={fields.email.id}>Email</Label>
           <Input {...getInputProps(fields.email, {type: 'email'})} autoFocus />
-          <div className="min-h-[32px] px-4 pb-3 pt-1">
-            <ErrorList id={fields.email.id} errors={fields.email.errors} />
-          </div>
+          <ErrorList id={fields.email.id} errors={fields.email.errors} />
         </div>
         <div className="mb-4 flex flex-col gap-2">
           <Label htmlFor={fields.password.id}>Password</Label>
           <Input {...getInputProps(fields.password, {type: 'password'})} />
-          <div className="min-h-[32px] px-4 pb-3 pt-1">
-            <ErrorList
-              id={fields.password.id}
-              errors={fields.password.errors}
-            />
-          </div>
+          <ErrorList id={fields.password.id} errors={fields.password.errors} />
         </div>
 
         <Button className="w-full" variant="default" type="submit">
@@ -121,4 +140,8 @@ export default function Login() {
       </div>
     </div>
   )
+}
+
+export function ErrorBoundary() {
+  return <GeneralErrorBoundary />
 }

@@ -48,12 +48,10 @@ export async function action({request}: ActionFunctionArgs) {
     token,
     request,
     'http://localhost:5003/api/Authorization/logout',
-    {
-      method: 'POST',
-    },
+    {method: 'POST'},
   )
   return redirect('/login', {
-    headers: {'Set-Cookie': await destroySession(session)},
+    headers: {'set-cookie': await destroySession(session)},
   })
 }
 
@@ -85,7 +83,6 @@ export default function App() {
       </main>
       <ScrollRestoration />
       <Scripts />
-      <LiveReload />
     </Document>
   )
 }
