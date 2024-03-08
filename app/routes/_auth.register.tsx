@@ -72,9 +72,7 @@ export async function action({request}: ActionFunctionArgs) {
     return json(
       {
         status: 'error',
-        result: result.reply({
-          formErrors: [detail],
-        }),
+        result: result.reply({formErrors: [detail]}),
       } as const,
       {status: response.status},
     )
