@@ -5,7 +5,6 @@ import type {
 } from '@remix-run/node'
 import {
   Form,
-  Link,
   Links,
   LiveReload,
   Meta,
@@ -16,6 +15,7 @@ import {
   redirect,
   useLoaderData,
 } from '@remix-run/react'
+import {GeneralErrorBoundary} from './components/error-boundary'
 import {Button} from './components/ui/button'
 import styles from './globals.css?url'
 import {cn} from './lib/utils'
@@ -28,7 +28,7 @@ import {
   destroySession,
   getSession,
 } from './utils/session.server'
-import {getTheme} from './utils/theme.server'
+import {Theme, getTheme} from './utils/theme.server'
 
 export function links() {
   return [{rel: 'stylesheet', href: styles}]
@@ -70,9 +70,11 @@ export async function loader({request}: LoaderFunctionArgs) {
 
 export default function App() {
   const data = useLoaderData<typeof loader>()
+  const theme = useTheme()
+  const nonce = useNonce()
 
   return (
-    <Document>
+    <Document theme={theme} nonce={nonce}>
       <main className="flex flex-1 flex-col p-6">
         {data.isAuthenticated ? (
           <Form method="post">
@@ -89,27 +91,26 @@ export default function App() {
 }
 
 export function ErrorBoundary() {
+  const nonce = useNonce()
+
   return (
-    <Document>
+    <Document nonce={nonce}>
       <main className="flex flex-1 flex-col items-center justify-center">
-        <div>
-          <h1 className="text-5xl font-bold">Oops!</h1>
-          <p className="my-4 text-xl text-muted-foreground">
-            An error occurred. Please try again later.
-          </p>
-          <Link to="/">
-            <Button variant="secondary">Back to home</Button>
-          </Link>
-        </div>
+        <GeneralErrorBoundary />
       </main>
     </Document>
   )
 }
 
-function Document({children}: {children: React.ReactNode}) {
-  const theme = useTheme()
-  const nonce = useNonce()
-
+function Document({
+  theme = 'light',
+  nonce,
+  children,
+}: {
+  theme?: Theme
+  nonce: string
+  children: React.ReactNode
+}) {
   return (
     <html lang="en" className={cn(theme, 'h-full')}>
       <head>
