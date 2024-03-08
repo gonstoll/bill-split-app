@@ -8,6 +8,7 @@ import {
 } from '@remix-run/node'
 import {Form, useActionData} from '@remix-run/react'
 import {z} from 'zod'
+import {GeneralErrorBoundary} from '~/components/error-boundary'
 import {ErrorList} from '~/components/error-list'
 import {Button} from '~/components/ui/button'
 import {Input} from '~/components/ui/input'
@@ -155,4 +156,8 @@ export default function PasswordForm() {
       </Form>
     </div>
   )
+}
+
+export function ErrorBoundary() {
+  return <GeneralErrorBoundary />
 }

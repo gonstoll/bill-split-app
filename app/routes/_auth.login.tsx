@@ -4,6 +4,7 @@ import type {ActionFunctionArgs} from '@remix-run/node'
 import {Form, Link, json, redirect, useActionData} from '@remix-run/react'
 import {AlertCircle} from 'lucide-react'
 import {z} from 'zod'
+import {GeneralErrorBoundary} from '~/components/error-boundary'
 import {ErrorList} from '~/components/error-list'
 import {Alert, AlertDescription, AlertTitle} from '~/components/ui/alert'
 import {Button} from '~/components/ui/button'
@@ -139,4 +140,8 @@ export default function Login() {
       </div>
     </div>
   )
+}
+
+export function ErrorBoundary() {
+  return <GeneralErrorBoundary />
 }
