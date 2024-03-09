@@ -1,6 +1,6 @@
 import {createCookieSessionStorage, redirect} from '@remix-run/node'
 import {z} from 'zod'
-import {ENV} from '~/env'
+import {fetcher} from './misc'
 
 type SessionData = {
   userId: string
@@ -22,7 +22,7 @@ export const {getSession, commitSession, destroySession} =
       httpOnly: true,
       sameSite: 'lax',
       path: '/',
-      secrets: [ENV.SESSION_SECRET],
+      secrets: [process.env.SESSION_SECRET],
     },
   })
 
@@ -43,8 +43,8 @@ export async function authFetch(
   const response = await fetch(url, {
     ...init,
     headers: {
-      ...init?.headers,
       'content-type': 'application/json',
+      ...init?.headers,
       Authorization: `Bearer ${token}`,
     },
   })
@@ -111,14 +111,7 @@ export async function authenticate(request: Request) {
 }
 
 async function refreshToken(body: {token?: string; refreshToken?: string}) {
-  const response = await fetch(
-    'http://localhost:5003/api/Authorization/refresh',
-    {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: {'content-type': 'application/json'},
-    },
-  )
+  const response = await fetcher.post('Authorization/refresh', body)
 
   if (!response.ok) {
     throw new Error('Failed to refresh token')

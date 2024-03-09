@@ -20,6 +20,7 @@ import styles from './globals.css?url'
 import {cn} from './lib/utils'
 import {ThemeSwitch, useTheme} from './routes/action.set-theme'
 import {ClientHintCheck, getHints} from './utils/client-hints'
+import {getEnv} from './utils/env.server'
 import {useNonce} from './utils/nonce-provider'
 import {
   authFetch,
@@ -48,6 +49,7 @@ export async function loader({request}: LoaderFunctionArgs) {
     hints: getHints(request),
     theme: getTheme(request),
     isAuthenticated: Boolean(token),
+    ENV: getEnv(),
   })
 }
 
@@ -63,39 +65,6 @@ export async function action({request}: ActionFunctionArgs) {
   return redirect('/login', {
     headers: {'set-cookie': await destroySession(session)},
   })
-}
-
-export default function App() {
-  const data = useLoaderData<typeof loader>()
-  const theme = useTheme()
-  const nonce = useNonce()
-
-  return (
-    <Document theme={theme} nonce={nonce}>
-      <main className="flex flex-1 flex-col p-6">
-        {data.isAuthenticated ? (
-          <Form method="post">
-            <Button>Logout</Button>
-          </Form>
-        ) : null}
-        <Outlet />
-      </main>
-      <ScrollRestoration />
-      <Scripts />
-    </Document>
-  )
-}
-
-export function ErrorBoundary() {
-  const nonce = useNonce()
-
-  return (
-    <Document nonce={nonce}>
-      <main className="flex flex-1 flex-col items-center justify-center">
-        <GeneralErrorBoundary />
-      </main>
-    </Document>
-  )
 }
 
 function Document({
@@ -123,7 +92,45 @@ function Document({
       <body className="flex h-full flex-col bg-background text-foreground">
         <ThemeSwitch />
         {children}
+        <ScrollRestoration />
+        <Scripts />
       </body>
     </html>
+  )
+}
+
+export default function App() {
+  const data = useLoaderData<typeof loader>()
+  const theme = useTheme()
+  const nonce = useNonce()
+
+  return (
+    <Document theme={theme} nonce={nonce}>
+      <main className="flex flex-1 flex-col p-6">
+        {data.isAuthenticated ? (
+          <Form method="post">
+            <Button>Logout</Button>
+          </Form>
+        ) : null}
+        <Outlet />
+      </main>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `window.ENV = ${JSON.stringify(data.ENV)}`,
+        }}
+      />
+    </Document>
+  )
+}
+
+export function ErrorBoundary() {
+  const nonce = useNonce()
+
+  return (
+    <Document nonce={nonce}>
+      <main className="flex flex-1 flex-col items-center justify-center">
+        <GeneralErrorBoundary />
+      </main>
+    </Document>
   )
 }

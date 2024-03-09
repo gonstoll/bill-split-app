@@ -13,6 +13,7 @@ import {ErrorList} from '~/components/error-list'
 import {Button} from '~/components/ui/button'
 import {Input} from '~/components/ui/input'
 import {Label} from '~/components/ui/label'
+import {fetcher} from '~/utils/misc'
 import {commitSession, getSession} from '~/utils/session.server'
 import {knownErrorSchema} from '~/utils/types'
 import {LoginResponseSchema} from './_auth.login'
@@ -65,14 +66,10 @@ export async function action({request}: ActionFunctionArgs) {
   }
 
   const body = result.value
-  const response = await fetch(
-    'http://localhost:5003/api/Authorization/password',
-    {
-      method: 'POST',
-      body: JSON.stringify({...body, userId}),
-      headers: {'content-type': 'application/json'},
-    },
-  )
+  const response = await fetcher.post('Authorization/password', {
+    ...body,
+    userId,
+  })
 
   if (!response.ok) {
     const parsedError = knownErrorSchema.safeParse(await response.json())
@@ -91,14 +88,10 @@ export async function action({request}: ActionFunctionArgs) {
 
   // Registration is done, we now perform the login for the user
   if (response.status === 204) {
-    const response = await fetch(
-      'http://localhost:5003/api/Authorization/login',
-      {
-        method: 'POST',
-        body: JSON.stringify({email, password: body.password}),
-        headers: {'content-type': 'application/json'},
-      },
-    )
+    const response = await fetcher.post('Authorization/login', {
+      email,
+      password: body.password,
+    })
 
     if (!response.ok) {
       const parsedError = knownErrorSchema.safeParse(await response.json())

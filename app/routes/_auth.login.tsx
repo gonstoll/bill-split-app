@@ -10,6 +10,7 @@ import {Alert, AlertDescription, AlertTitle} from '~/components/ui/alert'
 import {Button} from '~/components/ui/button'
 import {Input} from '~/components/ui/input'
 import {Label} from '~/components/ui/label'
+import {fetcher} from '~/utils/misc'
 import {commitSession, getSession} from '~/utils/session.server'
 import {knownErrorSchema} from '~/utils/types'
 
@@ -47,14 +48,7 @@ export async function action({request}: ActionFunctionArgs) {
   }
 
   const body = result.value
-  const response = await fetch(
-    'http://localhost:5003/api/Authorization/login',
-    {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: {'content-type': 'application/json'},
-    },
-  )
+  const response = await fetcher.post('Authorization/login', body)
 
   if (!response.ok) {
     const parsedError = knownErrorSchema.safeParse(await response.json())

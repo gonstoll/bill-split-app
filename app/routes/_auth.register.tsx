@@ -18,6 +18,7 @@ import {Alert, AlertDescription, AlertTitle} from '~/components/ui/alert'
 import {Button} from '~/components/ui/button'
 import {Input} from '~/components/ui/input'
 import {Label} from '~/components/ui/label'
+import {fetcher} from '~/utils/misc'
 import {commitSession, getSession} from '~/utils/session.server'
 import {entitySchema, knownErrorSchema} from '~/utils/types'
 
@@ -53,15 +54,7 @@ export async function action({request}: ActionFunctionArgs) {
   }
 
   const body = result.value
-  const response = await fetch(
-    // 'https://bill-split-31dd42940e62.herokuapp.com/api/Users',
-    'http://localhost:5003/api/Users',
-    {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: {'content-type': 'application/json'},
-    },
-  )
+  const response = await fetcher.post('Users', body)
 
   if (!response.ok) {
     const parsedError = knownErrorSchema.safeParse(await response.json())
