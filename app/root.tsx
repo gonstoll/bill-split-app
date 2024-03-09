@@ -1,18 +1,12 @@
-import type {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  MetaDescriptor,
-} from '@remix-run/node'
+import type {LoaderFunctionArgs, MetaDescriptor} from '@remix-run/node'
 import {
   Form,
   Links,
-  LiveReload,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
   json,
-  redirect,
   useLoaderData,
 } from '@remix-run/react'
 import {GeneralErrorBoundary} from './components/error-boundary'
@@ -22,13 +16,8 @@ import {cn} from './lib/utils'
 import {ThemeSwitch, useTheme} from './routes/action.set-theme'
 import {ClientHintCheck, getHints} from './utils/client-hints'
 import {useNonce} from './utils/nonce-provider'
-import {
-  authFetch,
-  authenticate,
-  destroySession,
-  getSession,
-} from './utils/session.server'
-import {Theme, getTheme} from './utils/theme.server'
+import {getSession} from './utils/session.server'
+import {getTheme, type Theme} from './utils/theme.server'
 
 export function links() {
   return [{rel: 'stylesheet', href: styles}]
@@ -39,20 +28,6 @@ export function meta(): Array<MetaDescriptor> {
     {title: 'BillSplit'},
     {name: 'description', content: 'Welcome to BillSplit'},
   ]
-}
-
-export async function action({request}: ActionFunctionArgs) {
-  const session = await getSession(request.headers.get('Cookie'))
-  const token = await authenticate(request)
-  await authFetch(
-    token,
-    request,
-    'http://localhost:5003/api/Authorization/logout',
-    {method: 'POST'},
-  )
-  return redirect('/login', {
-    headers: {'set-cookie': await destroySession(session)},
-  })
 }
 
 export async function loader({request}: LoaderFunctionArgs) {
