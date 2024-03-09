@@ -1,5 +1,6 @@
 import {createCookieSessionStorage, redirect} from '@remix-run/node'
-import {ENV} from '~/env'
+import {z} from 'zod'
+import {fetcher} from './misc'
 
 type SessionData = {
   userId: string
@@ -21,7 +22,7 @@ export const {getSession, commitSession, destroySession} =
       httpOnly: true,
       sameSite: 'lax',
       path: '/',
-      secrets: [ENV.SESSION_SECRET],
+      secrets: [process.env.SESSION_SECRET],
     },
   })
 
@@ -42,8 +43,8 @@ export async function authFetch(
   const response = await fetch(url, {
     ...init,
     headers: {
+      'content-type': 'application/json',
       ...init?.headers,
-      'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
   })
@@ -51,55 +52,71 @@ export async function authFetch(
   // Token might still be around, but not valid anymore
   if (response.status === 401 || response.status === 403) {
     throw redirect('/login', {
-      headers: {'Set-Cookie': await destroySession(session)},
+      headers: {'set-cookie': await destroySession(session)},
     })
   }
 
   return response
 }
 
+const LoginResponseSchema = z.object({
+  token: z.string(),
+  refreshToken: z.string(),
+  expiresOn: z.string(),
+})
+
 export async function authenticate(request: Request) {
   const session = await getSession(request.headers.get('Cookie'))
 
   try {
-    const accessToken = session.get('token')
+    const token = session.get('token')
     const expiresOn = session.get('expiresOn')
 
-    if (!accessToken) throw redirect('/login')
+    if (!token) throw redirect('/login')
     if (expiresOn && new Date(expiresOn) < new Date()) {
-      throw new AuthenticationError('Expired')
+      throw new AuthenticationError('Token expired')
     }
 
-    return accessToken
+    return token
   } catch (error) {
     if (error instanceof AuthenticationError) {
-      console.error('Session expired, destroying session')
+      console.info('Token expired, refreshing...')
+      const {
+        token: newToken,
+        refreshToken: _refreshToken,
+        expiresOn,
+      } = await refreshToken({
+        token: session.get('token'),
+        refreshToken: session.get('refreshToken'),
+      })
 
-      throw redirect('/login', {
-        headers: {'Set-Cookie': await destroySession(session)},
-      }) // TODO: (gonza) - Remove this when refresh token is implemented
+      // update the session with the new values
+      session.set('token', newToken)
+      session.set('refreshToken', _refreshToken)
+      session.set('expiresOn', expiresOn)
 
-      // // refresh the token somehow, this depends on the API you are using
-      // const {accessToken, refreshToken, expirationDate} = await refreshToken(
-      //   session.get('refreshToken'),
-      // )
-      //
-      // // update the session with the new values
-      // session.set('accessToken', accessToken)
-      // session.set('refreshToken', refreshToken)
-      // session.set('expirationDate', expirationDate)
-      //
-      // // commit the session and append the Set-Cookie header
-      // headers.append('Set-Cookie', await commitSession(session))
-      //
-      // // redirect to the same URL if the request was a GET (loader)
-      // if (request.method === 'GET') throw redirect(request.url, {headers})
-      //
-      // // return the access token so you can use it in your action
-      // return accessToken
+      // commit the session and append the Set-Cookie header
+      const headers = new Headers()
+      headers.append('set-cookie', await commitSession(session))
+
+      // redirect to the same URL if the request was a GET (loader)
+      if (request.method === 'GET') throw redirect(request.url, {headers})
+
+      return newToken
     }
 
     // throw again any unexpected error that could've happened
     throw error
   }
+}
+
+async function refreshToken(body: {token?: string; refreshToken?: string}) {
+  const response = await fetcher.post('Authorization/refresh', body)
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(`Failed to refresh token: ${data.reasons[0]}`)
+  }
+
+  return LoginResponseSchema.parse(data)
 }
