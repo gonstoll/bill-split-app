@@ -75,9 +75,10 @@ export async function action({request}: ActionFunctionArgs) {
   if (!responseResult.success) {
     throw new Response('Invalid response from server', {status: 500})
   }
-  const {token, expiresOn} = responseResult.data
+  const {token, expiresOn, refreshToken} = responseResult.data
   session.set('token', token)
   session.set('expiresOn', expiresOn)
+  session.set('refreshToken', refreshToken)
 
   return redirect('/', {
     headers: {'set-cookie': await commitSession(session)},
