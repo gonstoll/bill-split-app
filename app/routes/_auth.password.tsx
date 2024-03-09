@@ -15,6 +15,7 @@ import {Input} from '~/components/ui/input'
 import {Label} from '~/components/ui/label'
 import {commitSession, getSession} from '~/utils/session.server'
 import {knownErrorSchema} from '~/utils/types'
+import {LoginResponseSchema} from './_auth.login'
 
 const PasswordSchema = z
   .object({
@@ -29,12 +30,6 @@ const PasswordSchema = z
     schema => schema.password === schema.passwordCheck,
     'Passwords must match',
   )
-
-const LoginResponseSchema = z.object({
-  token: z.string(),
-  refreshToken: z.string(),
-  expiresOn: z.string(),
-})
 
 export async function loader({request}: LoaderFunctionArgs) {
   const session = await getSession(request.headers.get('Cookie'))

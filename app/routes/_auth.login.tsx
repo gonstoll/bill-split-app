@@ -25,10 +25,10 @@ const LoginSchema = z.object({
     .min(1, {message: 'Password is required'}),
 })
 
-const LoginResponseSchema = z.object({
+export const LoginResponseSchema = z.object({
   token: z.string(),
-  refreshToken: z.string(),
   expiresOn: z.string(),
+  refreshToken: z.string(),
 })
 
 export async function action({request}: ActionFunctionArgs) {
