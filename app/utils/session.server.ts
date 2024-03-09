@@ -112,10 +112,11 @@ export async function authenticate(request: Request) {
 
 async function refreshToken(body: {token?: string; refreshToken?: string}) {
   const response = await fetcher.post('Authorization/refresh', body)
+  const data = await response.json()
 
   if (!response.ok) {
-    throw new Error('Failed to refresh token')
+    throw new Error(`Failed to refresh token: ${data.reasons[0]}`)
   }
 
-  return LoginResponseSchema.parse(await response.json())
+  return LoginResponseSchema.parse(data)
 }
