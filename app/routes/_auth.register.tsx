@@ -61,11 +61,11 @@ export async function action({request}: ActionFunctionArgs) {
     if (!parsedError.success) {
       throw new Response('Invalid response from server', {status: 500})
     }
-    const {detail} = parsedError.data
+    const {reasons} = parsedError.data
     return json(
       {
         status: 'error',
-        result: result.reply({formErrors: [detail]}),
+        result: result.reply({formErrors: reasons}),
       } as const,
       {status: response.status},
     )

@@ -5,10 +5,7 @@ export const entitySchema = z.object({
 })
 
 export const knownErrorSchema = z.object({
-  type: z.string(),
-  title: z.string(),
-  detail: z.string(),
-  status: z.number(),
+  reasons: z.array(z.string()),
 })
 
 export type KnownError = z.infer<typeof knownErrorSchema>
