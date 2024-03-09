@@ -1,4 +1,8 @@
-import type {LoaderFunctionArgs, MetaDescriptor} from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaDescriptor,
+} from '@remix-run/node'
 import {
   Form,
   Links,
@@ -7,6 +11,7 @@ import {
   Scripts,
   ScrollRestoration,
   json,
+  redirect,
   useLoaderData,
 } from '@remix-run/react'
 import {GeneralErrorBoundary} from './components/error-boundary'
@@ -16,7 +21,12 @@ import {cn} from './lib/utils'
 import {ThemeSwitch, useTheme} from './routes/action.set-theme'
 import {ClientHintCheck, getHints} from './utils/client-hints'
 import {useNonce} from './utils/nonce-provider'
-import {getSession} from './utils/session.server'
+import {
+  authFetch,
+  authenticate,
+  destroySession,
+  getSession,
+} from './utils/session.server'
 import {getTheme, type Theme} from './utils/theme.server'
 
 export function links() {
@@ -38,6 +48,20 @@ export async function loader({request}: LoaderFunctionArgs) {
     hints: getHints(request),
     theme: getTheme(request),
     isAuthenticated: Boolean(token),
+  })
+}
+
+export async function action({request}: ActionFunctionArgs) {
+  const session = await getSession(request.headers.get('Cookie'))
+  const token = await authenticate(request)
+  await authFetch(
+    token,
+    request,
+    'http://localhost:5003/api/Authorization/logout',
+    {method: 'POST'},
+  )
+  return redirect('/login', {
+    headers: {'set-cookie': await destroySession(session)},
   })
 }
 
