@@ -23,15 +23,14 @@ async function fetcherFn(request?: Request) {
   const session = await getSession(request?.headers.get('Cookie'))
   const token = session.get('token')
   const headers = new Headers()
-  if (token) headers.append('Authorization', `Bearer ${token}`)
+  if (token) headers.append('authorization', `Bearer ${token}`)
   return {
     async get(url: string, init?: RequestInit) {
-      console.log('logging headers: ', headers)
       return await fetch(`${ENV.BASE_URL}/api/${url}`, {
         ...init,
         headers: {
           'content-type': 'application/json',
-          ...headers,
+          ...Object.fromEntries(headers.entries()),
           ...init?.headers,
         },
       })
@@ -43,7 +42,7 @@ async function fetcherFn(request?: Request) {
         body: body ? JSON.stringify(body) : undefined,
         headers: {
           'content-type': 'application/json',
-          ...headers,
+          ...Object.fromEntries(headers.entries()),
           ...init?.headers,
         },
       })
