@@ -4,11 +4,7 @@ import {authFetch, authenticate} from '~/utils/session.server'
 export async function loader({request}: LoaderFunctionArgs) {
   const token = await authenticate(request)
   try {
-    const response = await authFetch(
-      token,
-      request,
-      'http://localhost:5003/api/Users',
-    )
+    const response = await authFetch(token, request, 'Users')
     const data = await response.json()
     console.log('logging data: ', data)
   } catch (error) {

@@ -40,7 +40,7 @@ export async function authFetch(
   init?: RequestInit,
 ) {
   const session = await getSession(request.headers.get('Cookie'))
-  const response = await fetch(url, {
+  const response = await fetch(`${ENV.BASE_URL}/api/${url}`, {
     ...init,
     headers: {
       'content-type': 'application/json',
