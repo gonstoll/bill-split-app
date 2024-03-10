@@ -1,10 +1,13 @@
 import type {LoaderFunctionArgs} from '@remix-run/node'
-import {authFetch, authenticate} from '~/utils/session.server'
+import {fetcher} from '~/utils/misc'
+import {authenticate} from '~/utils/session.server'
 
 export async function loader({request}: LoaderFunctionArgs) {
-  const token = await authenticate(request)
+  await authenticate(request)
   try {
-    const response = await authFetch(token, request, 'Users')
+    const {get} = await fetcher(request)
+    const response = await get('Users')
+    console.log('logging HEYYYY response: ', response)
     const data = await response.json()
     console.log('logging data: ', data)
   } catch (error) {

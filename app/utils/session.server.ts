@@ -33,38 +33,19 @@ class AuthenticationError extends Error {
   }
 }
 
-export async function authFetch(
-  token: string,
-  request: Request,
-  url: string,
-  init?: RequestInit,
-) {
-  const session = await getSession(request.headers.get('Cookie'))
-  const response = await fetch(`${ENV.BASE_URL}/api/${url}`, {
-    ...init,
-    headers: {
-      'content-type': 'application/json',
-      ...init?.headers,
-      Authorization: `Bearer ${token}`,
-    },
-  })
-
-  // Token might still be around, but not valid anymore
-  if (response.status === 401 || response.status === 403) {
-    throw redirect('/login', {
-      headers: {'set-cookie': await destroySession(session)},
-    })
-  }
-
-  return response
-}
-
 const LoginResponseSchema = z.object({
   token: z.string(),
   refreshToken: z.string(),
   expiresOn: z.string(),
 })
 
+/**
+ * This function is used to authenticate the user and refresh the token if it's expired.
+ *
+ * If there is no token in the session (meaning the user is not authenticated), it will redirect to the login page.
+ *
+ * If the token is expired, it will refresh it and return the new token.
+ */
 export async function authenticate(request: Request) {
   const session = await getSession(request.headers.get('Cookie'))
 
@@ -111,7 +92,8 @@ export async function authenticate(request: Request) {
 }
 
 async function refreshToken(body: {token?: string; refreshToken?: string}) {
-  const response = await fetcher.post('Authorization/refresh', body)
+  const {post} = await fetcher()
+  const response = await post('Authorization/refresh', body)
   const data = await response.json()
 
   if (!response.ok) {

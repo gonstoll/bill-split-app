@@ -22,13 +22,9 @@ import {ThemeSwitch, useTheme} from './routes/action.set-theme'
 import {ClientHintCheck, getHints} from './utils/client-hints'
 import {getEnv} from './utils/env.server'
 import {useNonce} from './utils/nonce-provider'
-import {
-  authFetch,
-  authenticate,
-  destroySession,
-  getSession,
-} from './utils/session.server'
+import {authenticate, destroySession, getSession} from './utils/session.server'
 import {getTheme, type Theme} from './utils/theme.server'
+import {fetcher} from './utils/misc'
 
 export function links() {
   return [{rel: 'stylesheet', href: styles}]
@@ -55,8 +51,9 @@ export async function loader({request}: LoaderFunctionArgs) {
 
 export async function action({request}: ActionFunctionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
-  const token = await authenticate(request)
-  await authFetch(token, request, 'Authorization/logout', {method: 'POST'})
+  await authenticate(request)
+  const {post} = await fetcher(request)
+  await post('Authorization/logout')
   return redirect('/login', {
     headers: {'set-cookie': await destroySession(session)},
   })
