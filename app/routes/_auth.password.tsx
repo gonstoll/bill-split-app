@@ -6,7 +6,7 @@ import {
   type ActionFunctionArgs,
   type LoaderFunctionArgs,
 } from '@remix-run/node'
-import {Form, useActionData} from '@remix-run/react'
+import {Form, useActionData, useNavigation} from '@remix-run/react'
 import {z} from 'zod'
 import {GeneralErrorBoundary} from '~/components/error-boundary'
 import {ErrorList} from '~/components/error-list'
@@ -17,6 +17,7 @@ import {fetcher} from '~/utils/misc'
 import {commitSession, getSession} from '~/utils/session.server'
 import {knownErrorSchema} from '~/utils/types'
 import {LoginResponseSchema} from './_auth.login'
+import {Loader2} from 'lucide-react'
 
 const PasswordSchema = z
   .object({
@@ -125,6 +126,8 @@ export async function action({request}: ActionFunctionArgs) {
 
 export default function PasswordForm() {
   const actionData = useActionData<typeof action>()
+  const navigation = useNavigation()
+  const isSubmitting = navigation.state === 'submitting'
   const [form, fields] = useForm({
     id: 'password-form',
     constraint: getZodConstraint(PasswordSchema),
@@ -161,7 +164,8 @@ export default function PasswordForm() {
           />
         </div>
 
-        <Button className="w-full" type="submit">
+        <Button className="w-full" type="submit" disabled={isSubmitting}>
+          {isSubmitting ? <Loader2 className="mr-2 animate-spin" /> : null}
           Set password
         </Button>
       </Form>

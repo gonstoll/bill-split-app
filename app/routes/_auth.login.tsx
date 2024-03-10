@@ -1,8 +1,15 @@
 import {getFormProps, getInputProps, useForm} from '@conform-to/react'
 import {getZodConstraint, parseWithZod} from '@conform-to/zod'
 import type {ActionFunctionArgs} from '@remix-run/node'
-import {Form, Link, json, redirect, useActionData} from '@remix-run/react'
-import {AlertCircle} from 'lucide-react'
+import {
+  Form,
+  Link,
+  json,
+  redirect,
+  useActionData,
+  useNavigation,
+} from '@remix-run/react'
+import {AlertCircle, Loader2} from 'lucide-react'
 import {z} from 'zod'
 import {GeneralErrorBoundary} from '~/components/error-boundary'
 import {ErrorList} from '~/components/error-list'
@@ -81,6 +88,8 @@ export async function action({request}: ActionFunctionArgs) {
 
 export default function Login() {
   const actionData = useActionData<typeof action>()
+  const navigation = useNavigation()
+  const isSubmitting = navigation.state === 'submitting'
   const [form, fields] = useForm({
     id: 'login-form',
     constraint: getZodConstraint(LoginSchema),
@@ -123,7 +132,13 @@ export default function Login() {
           <ErrorList id={fields.password.id} errors={fields.password.errors} />
         </div>
 
-        <Button className="w-full" variant="default" type="submit">
+        <Button
+          className="w-full"
+          variant="default"
+          type="submit"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? <Loader2 className="mr-2 animate-spin" /> : null}
           Login
         </Button>
       </Form>

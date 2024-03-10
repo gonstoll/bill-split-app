@@ -88,6 +88,7 @@ export async function action({request}: ActionFunctionArgs) {
 export default function RegisterPage() {
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
+  const isSubmitting = navigation.state === 'submitting'
   const [form, fields] = useForm({
     id: 'register-form',
     constraint: getZodConstraint(RegisterSchema),
@@ -157,11 +158,9 @@ export default function RegisterPage() {
           type="submit"
           name="intent"
           value="register"
-          disabled={navigation.state === 'submitting'}
+          disabled={isSubmitting}
         >
-          {navigation.state === 'submitting' ? (
-            <Loader2 className="mr-2 animate-spin" />
-          ) : null}
+          {isSubmitting ? <Loader2 className="mr-2 animate-spin" /> : null}
           Register
         </Button>
       </Form>
