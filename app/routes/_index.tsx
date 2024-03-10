@@ -7,7 +7,6 @@ export async function loader({request}: LoaderFunctionArgs) {
   try {
     const {get} = await fetcher(request)
     const response = await get('Users')
-    console.log('logging HEYYYY response: ', response)
     const data = await response.json()
     console.log('logging data: ', data)
   } catch (error) {
