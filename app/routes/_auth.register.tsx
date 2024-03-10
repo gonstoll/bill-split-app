@@ -4,15 +4,14 @@ import type {ActionFunctionArgs} from '@remix-run/node'
 import {
   Form,
   Link,
-  isRouteErrorResponse,
   json,
   redirect,
   useActionData,
   useNavigation,
-  useRouteError,
 } from '@remix-run/react'
 import {AlertCircle, Loader2} from 'lucide-react'
 import {z} from 'zod'
+import {GeneralErrorBoundary} from '~/components/error-boundary'
 import {ErrorList} from '~/components/error-list'
 import {Alert, AlertDescription, AlertTitle} from '~/components/ui/alert'
 import {Button} from '~/components/ui/button'
@@ -176,47 +175,5 @@ export default function RegisterPage() {
 }
 
 export function ErrorBoundary() {
-  const error = useRouteError()
-
-  if (typeof document !== 'undefined') {
-    console.error(error)
-  }
-
-  if (isRouteErrorResponse(error)) {
-    return (
-      <div className="flex items-center justify-center">
-        <div>
-          <h1 className="text-5xl font-bold">Oops!</h1>
-          {error.data?.message ? (
-            <p className="my-4 text-xl text-muted-foreground">
-              {error.data.message}
-            </p>
-          ) : (
-            'An error occurred. Please try again later.'
-          )}
-          <Link to="/register">
-            <Button variant="secondary">Try again</Button>
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
-  if (error instanceof Error) {
-    return (
-      <div className="flex items-center justify-center">
-        <div>
-          <h1 className="text-5xl font-bold">Oops!</h1>
-          <p className="my-4 text-xl text-muted-foreground">
-            An error occurred. Please try again later.
-          </p>
-          <Link to="/register">
-            <Button variant="secondary">Try again</Button>
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
-  throw new Error('Unhandled error in error boundary')
+  return <GeneralErrorBoundary />
 }
