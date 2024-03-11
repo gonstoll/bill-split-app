@@ -17,7 +17,7 @@ import {Alert, AlertDescription, AlertTitle} from '~/components/ui/alert'
 import {Button} from '~/components/ui/button'
 import {Input} from '~/components/ui/input'
 import {Label} from '~/components/ui/label'
-import {fetcher} from '~/utils/misc'
+import {Api} from '~/utils/auth.server'
 import {commitSession, getSession} from '~/utils/session.server'
 import {entitySchema, knownErrorSchema} from '~/utils/types'
 
@@ -53,7 +53,7 @@ export async function action({request}: ActionFunctionArgs) {
   }
 
   const body = result.value
-  const api = await fetcher()
+  const api = new Api(request)
   const response = await api.post('Users', body)
 
   if (!response.ok) {

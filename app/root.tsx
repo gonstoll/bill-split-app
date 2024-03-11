@@ -19,11 +19,11 @@ import {Button} from './components/ui/button'
 import styles from './globals.css?url'
 import {cn} from './lib/utils'
 import {ThemeSwitch, useTheme} from './routes/action.set-theme'
+import {Api} from './utils/auth.server'
 import {ClientHintCheck, getHints} from './utils/client-hints'
 import {getEnv} from './utils/env.server'
-import {fetcher} from './utils/misc'
 import {useNonce} from './utils/nonce-provider'
-import {authenticate, destroySession, getSession} from './utils/session.server'
+import {destroySession, getSession} from './utils/session.server'
 import {getTheme, type Theme} from './utils/theme.server'
 
 export function links() {
@@ -51,8 +51,8 @@ export async function loader({request}: LoaderFunctionArgs) {
 
 export async function action({request}: ActionFunctionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
-  await authenticate(request)
-  const api = await fetcher(request)
+  const api = new Api(request)
+  await api.authenticate()
   await api.post('Authorization/logout')
   return redirect('/login', {
     headers: {'set-cookie': await destroySession(session)},

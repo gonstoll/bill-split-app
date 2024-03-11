@@ -14,10 +14,10 @@ import {ErrorList} from '~/components/error-list'
 import {Button} from '~/components/ui/button'
 import {Input} from '~/components/ui/input'
 import {Label} from '~/components/ui/label'
-import {fetcher} from '~/utils/misc'
 import {commitSession, getSession} from '~/utils/session.server'
 import {knownErrorSchema} from '~/utils/types'
 import {LoginResponseSchema} from './_auth.login'
+import {Api} from '~/utils/auth.server'
 
 const PasswordSchema = z
   .object({
@@ -67,7 +67,7 @@ export async function action({request}: ActionFunctionArgs) {
   }
 
   const body = result.value
-  const api = await fetcher()
+  const api = new Api(request)
   const response = await api.post('Authorization/password', {...body, userId})
 
   if (!response.ok) {
