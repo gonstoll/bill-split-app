@@ -5,8 +5,8 @@ import {authenticate} from '~/utils/session.server'
 export async function loader({request}: LoaderFunctionArgs) {
   await authenticate(request)
   try {
-    const {get} = await fetcher(request)
-    const response = await get('Users')
+    const api = await fetcher(request)
+    const response = await api.get('Users')
     const data = await response.json()
     console.log('logging data: ', data)
   } catch (error) {

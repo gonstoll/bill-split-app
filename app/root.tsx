@@ -52,8 +52,8 @@ export async function loader({request}: LoaderFunctionArgs) {
 export async function action({request}: ActionFunctionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
   await authenticate(request)
-  const {post} = await fetcher(request)
-  await post('Authorization/logout')
+  const api = await fetcher(request)
+  await api.post('Authorization/logout')
   return redirect('/login', {
     headers: {'set-cookie': await destroySession(session)},
   })

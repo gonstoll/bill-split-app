@@ -55,8 +55,8 @@ export async function action({request}: ActionFunctionArgs) {
   }
 
   const body = result.value
-  const {post} = await fetcher()
-  const response = await post('Authorization/login', body)
+  const api = await fetcher()
+  const response = await api.post('Authorization/login', body)
 
   if (!response.ok) {
     const parsedError = knownErrorSchema.safeParse(await response.json())

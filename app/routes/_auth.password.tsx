@@ -67,8 +67,8 @@ export async function action({request}: ActionFunctionArgs) {
   }
 
   const body = result.value
-  const {post} = await fetcher()
-  const response = await post('Authorization/password', {...body, userId})
+  const api = await fetcher()
+  const response = await api.post('Authorization/password', {...body, userId})
 
   if (!response.ok) {
     const parsedError = knownErrorSchema.safeParse(await response.json())
@@ -87,7 +87,7 @@ export async function action({request}: ActionFunctionArgs) {
 
   // Registration is done, we now perform the login for the user
   if (response.status === 204) {
-    const response = await post('Authorization/login', {
+    const response = await api.post('Authorization/login', {
       email,
       password: body.password,
     })

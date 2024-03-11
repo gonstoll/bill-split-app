@@ -96,8 +96,8 @@ async function refreshToken(request: Request) {
     token: session.get('token'),
     refreshToken: session.get('refreshToken'),
   }
-  const {post} = await fetcher()
-  const response = await post('Authorization/refresh', body)
+  const api = await fetcher()
+  const response = await api.post('Authorization/refresh', body)
   const data = await response.json()
 
   if (!response.ok) {

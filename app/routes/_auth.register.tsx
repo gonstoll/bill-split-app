@@ -53,8 +53,8 @@ export async function action({request}: ActionFunctionArgs) {
   }
 
   const body = result.value
-  const {post} = await fetcher()
-  const response = await post('Users', body)
+  const api = await fetcher()
+  const response = await api.post('Users', body)
 
   if (!response.ok) {
     const parsedError = knownErrorSchema.safeParse(await response.json())
