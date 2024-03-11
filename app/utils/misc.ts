@@ -18,53 +18,6 @@ export function getErrorMessage(error: unknown) {
   return 'Unknown Error'
 }
 
-class Api {
-  private headers: Headers
-  constructor(private request: Request) {
-    this.headers = new Headers()
-  }
-
-  async init() {
-    const session = await getSession(this.request.headers.get('Cookie'))
-    const token = session.get('token')
-    if (token) {
-      this.headers.append('authorization', `Bearer ${token}`)
-    } else {
-      this.headers.delete('authorization')
-    }
-  }
-
-  async get(url: string, init?: Omit<RequestInit, 'body'>) {
-    await this.init()
-    return await fetch(`${ENV.BASE_URL}/api/${url}`, {
-      ...init,
-      headers: {
-        'content-type': 'application/json',
-        ...Object.fromEntries(this.headers.entries()),
-        ...init?.headers,
-      },
-    })
-  }
-
-  async post(
-    url: string,
-    body?: Record<string, unknown>,
-    init?: Omit<RequestInit, 'body'>,
-  ) {
-    await this.init()
-    return await fetch(`${ENV.BASE_URL}/api/${url}`, {
-      ...init,
-      method: 'POST',
-      body: body ? JSON.stringify(body) : undefined,
-      headers: {
-        'content-type': 'application/json',
-        ...Object.fromEntries(this.headers.entries()),
-        ...init?.headers,
-      },
-    })
-  }
-}
-
 export const fetcher = serverOnly$(fetcherFn)!
 async function fetcherFn(request?: Request) {
   const session = await getSession(request?.headers.get('Cookie'))
