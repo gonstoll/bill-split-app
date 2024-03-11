@@ -42,9 +42,11 @@ const LoginResponseSchema = z.object({
 /**
  * This function is used to authenticate the user and refresh the token if it's expired.
  *
- * If there is no token in the session (meaning the user is not authenticated), it will redirect to the login page.
+ * - If there is no token in the session (meaning the user is not authenticated), it will redirect to the login page.
  *
- * If the token is expired, it will refresh it and return the new token.
+ * - If the token is expired, it will refresh it and return the new token.
+ *
+ * - If the token refreshing fails, it will redirect to the login page and destroy the session.
  */
 export async function authenticate(request: Request) {
   const session = await getSession(request.headers.get('Cookie'))
@@ -66,10 +68,7 @@ export async function authenticate(request: Request) {
         token: newToken,
         refreshToken: _refreshToken,
         expiresOn,
-      } = await refreshToken({
-        token: session.get('token'),
-        refreshToken: session.get('refreshToken'),
-      })
+      } = await refreshToken(request)
 
       // update the session with the new values
       session.set('token', newToken)
@@ -91,13 +90,20 @@ export async function authenticate(request: Request) {
   }
 }
 
-async function refreshToken(body: {token?: string; refreshToken?: string}) {
+async function refreshToken(request: Request) {
+  const session = await getSession(request.headers.get('Cookie'))
+  const body = {
+    token: session.get('token'),
+    refreshToken: session.get('refreshToken'),
+  }
   const {post} = await fetcher()
   const response = await post('Authorization/refresh', body)
   const data = await response.json()
 
   if (!response.ok) {
-    throw new Error(`Failed to refresh token: ${data.reasons[0]}`)
+    throw redirect('/login', {
+      headers: {'set-cookie': await destroySession(session)},
+    })
   }
 
   return LoginResponseSchema.parse(data)
