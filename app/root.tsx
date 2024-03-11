@@ -21,10 +21,10 @@ import {cn} from './lib/utils'
 import {ThemeSwitch, useTheme} from './routes/action.set-theme'
 import {ClientHintCheck, getHints} from './utils/client-hints'
 import {getEnv} from './utils/env.server'
+import {fetcher} from './utils/misc'
 import {useNonce} from './utils/nonce-provider'
 import {authenticate, destroySession, getSession} from './utils/session.server'
 import {getTheme, type Theme} from './utils/theme.server'
-import {fetcher} from './utils/misc'
 
 export function links() {
   return [{rel: 'stylesheet', href: styles}]

@@ -7,6 +7,7 @@ import {
   type LoaderFunctionArgs,
 } from '@remix-run/node'
 import {Form, useActionData, useNavigation} from '@remix-run/react'
+import {Loader2} from 'lucide-react'
 import {z} from 'zod'
 import {GeneralErrorBoundary} from '~/components/error-boundary'
 import {ErrorList} from '~/components/error-list'
@@ -17,7 +18,6 @@ import {fetcher} from '~/utils/misc'
 import {commitSession, getSession} from '~/utils/session.server'
 import {knownErrorSchema} from '~/utils/types'
 import {LoginResponseSchema} from './_auth.login'
-import {Loader2} from 'lucide-react'
 
 const PasswordSchema = z
   .object({
